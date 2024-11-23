@@ -8,7 +8,6 @@
     "check": "turbo run check --parallel",
     "lint": "turbo run lint --parallel",
     "lint:fix": "turbo run lint:fix --parallel",
-    "prepare": "husky install",
     "pnpm-install": "pnpm i",
     "clean-node_modules": "npx shx rm -rf node_modules && rm -rf **/*/node_modules",
     "clean-dist": "npx shx rm -rf **/*/dist && npx shx rm -rf **/*/.turbo",

@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { AuthController } from './modules/controllers/auth.controller';
+import { AuthService } from './modules/services/auth.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { UserService } from './modules/services/user.service';
+import { UserController } from './modules/controllers/user.controller';
 
 @Module({
   imports: [
@@ -13,9 +15,16 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
           port: 3001,
         },
       },
+      {
+        name: 'USER_SERVICE',
+        transport: Transport.TCP,
+        options: {
+          port: 3002,
+        },
+      },
     ]),
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AuthController, UserController],
+  providers: [AuthService, UserService],
 })
 export class AppModule {}
