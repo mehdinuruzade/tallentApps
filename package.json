@@ -2,10 +2,22 @@
   "name": "tallentAppRepo",
   "private": true,
   "scripts": {
-    "build": "turbo build",
-    "dev": "turbo dev",
-    "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "build": "turbo run build",
+    "dev": "turbo run dev --filter=./apps/* --parallel",
+    "format": "turbo run format && prettier --write \"./*.{js,yaml,json}\"",
+    "check": "turbo run check --parallel",
+    "lint": "turbo run lint --parallel",
+    "lint:fix": "turbo run lint:fix --parallel",
+    "prepare": "husky install",
+    "pnpm-install": "pnpm i",
+    "clean-node_modules": "npx shx rm -rf node_modules && rm -rf **/*/node_modules",
+    "clean-dist": "npx shx rm -rf **/*/dist && npx shx rm -rf **/*/.turbo",
+    "kill-node": "npx kill-port 3000 3001 3002 3003 3004 4000",
+    "env-generate": "turbo run env-generate",
+    "infra-env-generate": "npx shx cp infra/docker/postgres/.env.example infra/docker/postgres/.env",
+    "infra-up": "docker compose -f infra/docker/postgres/docker-compose.yml up -d",
+    "infra-down": "docker compose -f infra/docker/postgres/docker-compose.yml down",
+    "infra-destroy": "pnpm run infra-down -v"
   },
   "devDependencies": {
     "prettier": "^3.2.5",
