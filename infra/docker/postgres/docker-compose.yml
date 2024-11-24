@@ -1,0 +1,31 @@
+version: "3.8"
+services:
+  db:
+    image: postgres
+    container_name: local_pgdb
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: msuser       # Create msuser role
+      POSTGRES_PASSWORD: EW4RPd85 # Set msuser's password
+      POSTGRES_DB: talent         # Create default database
+    volumes:
+      - local_pgdata:/var/lib/postgresql/data
+      - ./init.sh:/docker-entrypoint-initdb.d/init.sh
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    ports:
+      - "8888:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
+volumes:
+  local_pgdata:
+  pgadmin-data:
