@@ -241,6 +241,9 @@ importers:
       dotenv:
         specifier: ^16.4.5
         version: 16.4.5
+      joi:
+        specifier: ^17.13.3
+        version: 17.13.3
       pg:
         specifier: ^8.13.1
         version: 8.13.1

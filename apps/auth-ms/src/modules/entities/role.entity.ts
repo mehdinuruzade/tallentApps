@@ -1,4 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany, ManyToMany, JoinTable } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  OneToMany,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
 import { User } from './user.entity';
 import { Permission } from './permission.entity';
 
@@ -10,11 +17,10 @@ export class Role {
   @Column({ nullable: false })
   name: string;
 
-  @ManyToMany(()=>Permission,(permission)=> permission.roles ) 
+  @ManyToMany(() => Permission, (permission) => permission.roles)
   @JoinTable()
   permissions: string[];
 
-  @OneToMany(()=> User , (user)=>(user.roleDetails)) 
+  @OneToMany(() => User, (user) => user.roleDetails)
   users: User[];
-
 }
