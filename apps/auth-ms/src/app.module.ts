@@ -5,6 +5,17 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import * as fs from 'fs';
+
+const envFilePath = join(
+  process.cwd(),
+  `.env.${process.env.NODE_ENV || 'development'}`, // Read from root
+);
+
+if (!fs.existsSync(envFilePath)) {
+  console.error(`Environment file not found: ${envFilePath}`);
+  process.exit(1);
+}
 
 @Module({
   imports: [
