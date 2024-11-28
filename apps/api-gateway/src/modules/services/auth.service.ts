@@ -1,12 +1,26 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
+import { SignInDto } from '../dtos/signin.dto';
+import { catchError, firstValueFrom, throwError } from 'rxjs';
 
 @Injectable()
 export class AuthService {
   constructor(
     @Inject('AUTH_SERVICE') private readonly authService: ClientProxy,
   ) {}
-  async login(credentials: { email: string; password: string }) {
-    return this.authService.send({ cmd: 'login' }, credentials).toPromise();
+  async register(credentials: { email: string; password: string }) {
+    return this.authService.send({ cmd: 'create_user' }, credentials);
+  }
+
+  async signIn(dto: SignInDto) {
+    return await firstValueFrom(
+      this.authService
+        .send({ cmd: 'signin' }, dto)
+        .pipe(
+          catchError((error) =>
+            throwError(() => new RpcException(error.response)),
+          ),
+        ),
+    );
   }
 }

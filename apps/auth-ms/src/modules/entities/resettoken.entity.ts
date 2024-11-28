@@ -23,5 +23,4 @@ export class ResetToken {
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
-
 }

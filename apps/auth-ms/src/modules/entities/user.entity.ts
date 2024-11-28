@@ -35,7 +35,7 @@ export class User {
   updatedAt: Date;
 
   @OneToMany(() => RefreshToken, (resfreshToken) => resfreshToken.user)
-  refreshTokens: RefreshToken[]
+  refreshTokens: RefreshToken[];
 
   @OneToOne(() => ResetToken, (resetToken) => resetToken.user, {
     nullable: true,

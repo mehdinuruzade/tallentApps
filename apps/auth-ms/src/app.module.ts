@@ -5,9 +5,25 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
+import { User } from './modules/entities/user.entity';
+import { JwtModule } from '@nestjs/jwt';
+import { LocalStrategy } from './modules/strategies/local.strategy';
+import { JwtStrategy } from './modules/strategies/jwt.strategy';
+import { RefreshJwtStrategy } from './modules/strategies/refreshToken.strategy';
+import { PassportModule } from '@nestjs/passport';
+import { RefreshToken } from './modules/entities/refreshtoken.entity';
 @Module({
   imports: [
+    PassportModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get('JWT_SECRET'),
+        signOptions: { expiresIn: '120s' },
+      }),
+    }),
+    TypeOrmModule.forFeature([User, RefreshToken]),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: join(
@@ -37,14 +53,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
         schema: configService.get('DB_SCHEMA'),
-        entities: [join(process.cwd(), 'dist/**/*.entity.js')],
-        synchronize: configService.get<string>('NODE_ENV') === 'development', // Only true in dev
+        entities: [join(__dirname, '**/*.entity.{js,ts}')],
+        synchronize: false, //configService.get<string>('NODE_ENV') === 'development'//
         autoLoadEntities: true, // Auto-load entities
         logging: configService.get<string>('NODE_ENV') === 'development', // Enable logging in dev
       }),
     }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, LocalStrategy, JwtStrategy, RefreshJwtStrategy],
 })
 export class AppModule {}
