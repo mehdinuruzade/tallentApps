@@ -36,6 +36,7 @@ export class UserService {
   // User update API
   async updateUserProfile(userProfileData: UpdateUserProfileDto, token: string) {
     const user = await this.authService.send({ cmd: 'validate-token' }, token).toPromise();
+    
     if (!user) {
       throw new RpcException('Unauthorized: Invalid or expired token');
       

@@ -13,7 +13,7 @@ import {
 import { RefreshToken } from './refreshtoken.entity';
 import { ResetToken } from './resettoken.entity';
 import { Role } from './role.entity';
-import { UUID } from 'crypto';
+import { UUID } from 'typeorm/driver/mongodb/bson.typings';
 
 @Entity('users_auth')
 export class UserAuth {

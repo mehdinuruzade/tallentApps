@@ -11,6 +11,8 @@ import { SignInResponseDto } from './modules/dtos/signin-response.dto';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { catchError, firstValueFrom, throwError } from 'rxjs';
 import { EncryptService } from './modules/utils/encrypt.service';
+import { UUID } from 'crypto';
+import { UpdatePasswordDto } from './modules/dtos/updatePassword.dto';
 @Injectable()
 export class AppService {
   constructor(
@@ -70,7 +72,7 @@ console.log({salam: createdUser})
 
     // Generate tokens
     await this.createRefreshToken(user);
-    const accessToken = this.generateAccessToken(user.email);
+    const accessToken = this.generateAccessToken(user.email,user.id);
 
     // Construct and transform response
     return plainToInstance(
@@ -99,8 +101,8 @@ console.log({salam: createdUser})
     return this.refreshTokenRepo.save(refreshToken); // Save and return the refresh token
   }
 
-  private generateAccessToken(email: string): string {
-    const payload = { username: email };
+  private generateAccessToken(email: string , userId: string){
+    const payload = { username: email,userId:userId };
     return this.jwtService.sign(payload, { expiresIn: '1h' });
   }
 
@@ -123,6 +125,7 @@ console.log({salam: createdUser})
   }
   
   async validateToken(token: string): Promise<UserAuth | null> {
+    console.log(token,"token from auth-ms");
     try {
       const decoded = this.jwtService.verify(token); 
       const user = await this.userRepo.findOneBy({ email: decoded.username });
@@ -134,6 +137,24 @@ console.log({salam: createdUser})
       return user; 
     } catch (error) {
       throw new RpcException('Invalid or expired token');
+    }
+  }
+
+   async updatePassword(data: any): Promise<UserAuth> {
+    const user = await this.userRepo.findOne({ where: { id: data.userId } });
+
+    if (!user) {
+      throw new RpcException('User not found');
+    }
+    const hashedPassword = await this.encryptService.hashPassword(data.newPassword);
+    user.password = hashedPassword; 
+
+    try {
+      await this.userRepo.save(user);
+      return user; 
+    } catch (error) {
+      console.error('Error updating password:', error);
+      throw new RpcException('Error updating password');
     }
   }
 }
