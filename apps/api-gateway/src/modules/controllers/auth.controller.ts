@@ -1,9 +1,9 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Headers, Put } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
 import { SignInDto } from '../dtos/signin.dto';
 import { ApiOperation, ApiResponse, ApiTags, ApiBody } from '@nestjs/swagger';
 import { RegisterDto } from '../dtos/register.dto';
-import { register } from 'module';
+import { UpdatePasswordDto } from '../dtos/updatePassword.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -27,5 +27,17 @@ export class AuthController {
 
     console.log(signInDto,"signInDto from api-gateway");
     return await this.authService.signIn(signInDto);
+  }
+
+  @Post('update-password')
+  @ApiOperation({ summary: 'Reset password' })  
+  @ApiResponse({ status: 200, description: 'Password reset successfully.' })  
+  @ApiResponse({ status: 401, description: 'Unauthorized. Invalid token.' })  
+  async updatePassword(
+    @Body() updatePasswordDto: UpdatePasswordDto,
+    @Headers('Authorization') token: string,
+  ) 
+  {
+    return this.authService.updatePassword(token, updatePasswordDto);
   }
 }
