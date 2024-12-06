@@ -24,6 +24,8 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'User logged in successfully.' })  
   @ApiResponse({ status: 401, description: 'Unauthorized. Invalid credentials.' })  
   async login(@Body() signInDto: SignInDto) {
+
+    console.log(signInDto,"signInDto from api-gateway");
     return await this.authService.signIn(signInDto);
   }
 }

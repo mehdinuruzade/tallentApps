@@ -23,4 +23,8 @@ export class AuthService {
         ),
     );
   }
+  async validateToken(token: string) {
+    return this.authService.send({ cmd: 'validate-token' }, token);
+  } 
+  
 }

@@ -1,24 +1,24 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './modules/dtos/createuser.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './modules/entities/user.entity';
+import { UserAuth } from './modules/entities/user.entity';
 import { LessThan, Repository } from 'typeorm';
-import {
-  comparePasswords,
-  hashPassword,
-} from './modules/utils/encrypt.service';
 import { SignInDto } from './modules/dtos/signin.dto';
 import { JwtService } from '@nestjs/jwt';
 import { RefreshToken } from './modules/entities/refreshtoken.entity';
 import { plainToInstance } from 'class-transformer';
 import { SignInResponseDto } from './modules/dtos/signin-response.dto';
-
+import { ClientProxy, RpcException } from '@nestjs/microservices';
+import { catchError, firstValueFrom, throwError } from 'rxjs';
+import { EncryptService } from './modules/utils/encrypt.service';
 @Injectable()
 export class AppService {
   constructor(
+    private readonly encryptService: EncryptService,
     private jwtService: JwtService,
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
+    @Inject('USER_SERVICE') private readonly userService: ClientProxy,
+    @InjectRepository(UserAuth)
+    private readonly userRepo: Repository<UserAuth>,
     @InjectRepository(RefreshToken)
     private readonly refreshTokenRepo: Repository<RefreshToken>,
   ) {}
@@ -30,13 +30,36 @@ export class AppService {
     if (user) {
       throw new ConflictException('User with this email already exists');
     }
-    const hashedPassword = await hashPassword(password);
+    const hashedPassword = await this.encryptService.hashPassword(password);
     const newUser = this.userRepo.create({
       email: email,
       password: hashedPassword,
     });
 
-    return await this.userRepo.save(newUser);
+
+    console.log('salam 2')
+    
+    const createdUser = await this.userRepo.save(newUser);
+console.log({salam: createdUser})
+
+
+    const { id } = createdUser;
+    
+    const result = await firstValueFrom(
+      this.userService
+        .send({ cmd: 'create-user-profile' }, id)
+        .pipe(
+          catchError((error) =>
+            throwError(() => new RpcException(error.response)),
+          ),
+        ),
+    );
+
+    
+    if (result) {
+      return createdUser;
+    }
+    throw new Error('User not created');
   }
 
   async signIn(signInDto: SignInDto): Promise<SignInResponseDto> {
@@ -57,7 +80,7 @@ export class AppService {
     );
   }
 
-  private async createRefreshToken(user: User): Promise<RefreshToken> {
+  private async createRefreshToken(user: UserAuth): Promise<RefreshToken> {
     const now = new Date();
 
     // Delete expired tokens for the user using userId
@@ -81,7 +104,7 @@ export class AppService {
     return this.jwtService.sign(payload, { expiresIn: '1h' });
   }
 
-  private async findUserWithTokens(email: string): Promise<User | null> {
+  private async findUserWithTokens(email: string): Promise<UserAuth | null> {
     return this.userRepo.findOne({
       where: { email },
       relations: ['refreshTokens'], // Fetch related refresh tokens
@@ -92,10 +115,25 @@ export class AppService {
     const { email, password } = signInDto;
     const user = await this.userRepo.findOneBy({ email });
 
-    if (!user || !(await comparePasswords(password, user.password))) {
+    if (!user || !(await this.encryptService.comparePasswords(password, user.password))) {
       return null;
     }
 
     return user;
+  }
+  
+  async validateToken(token: string): Promise<UserAuth | null> {
+    try {
+      const decoded = this.jwtService.verify(token); 
+      const user = await this.userRepo.findOneBy({ email: decoded.username });
+
+      if (!user) {
+        throw new RpcException('User not found');
+      }
+
+      return user; 
+    } catch (error) {
+      throw new RpcException('Invalid or expired token');
+    }
   }
 }

@@ -5,7 +5,7 @@ import {
   CreateDateColumn,
   ManyToOne,
 } from 'typeorm';
-import { User } from './user.entity';
+import { UserAuth } from './user.entity';
 
 @Entity('refreshtokens')
 export class RefreshToken {
@@ -15,8 +15,8 @@ export class RefreshToken {
   @Column({ nullable: false })
   token: string;
 
-  @ManyToOne(() => User, (user) => user.refreshTokens, { onDelete: 'CASCADE' })
-  user: User;
+  @ManyToOne(() => UserAuth, (user) => user.refreshTokens, { onDelete: 'CASCADE' })
+  user: UserAuth;
 
   @Column({ type: 'timestamptz' })
   expiresAt: Date;

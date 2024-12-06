@@ -1,13 +1,27 @@
+import * as Joi from 'joi';
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { join } from 'path';
-import Joi from 'joi';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { UserProfile } from './modules/entities/user.profile.entity';
 @Module({
   imports: [
+    ClientsModule.register([
+      {
+        name: 'USER_SERVICE',
+        transport: Transport.TCP,
+        options: {
+          port: 3002,
+        },
+      },
+    ]),
+
+   
+    TypeOrmModule.forFeature([UserProfile]),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: join(
@@ -37,8 +51,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
         schema: configService.get('DB_SCHEMA'),
-        entities: [join(process.cwd(), 'dist/**/*.entity.js')],
-        synchronize: configService.get<string>('NODE_ENV') === 'development', // Only true in dev
+        entities: [join(__dirname, 'apps/auth-ms/src/**/*.entity.{js,ts}')],
+        synchronize: true, //configService.get<string>('NODE_ENV') === 'development'//
         autoLoadEntities: true, // Auto-load entities
         logging: configService.get<string>('NODE_ENV') === 'development', // Enable logging in dev
       }),
