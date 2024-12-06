@@ -5,15 +5,30 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './modules/entities/user.entity';
+import { UserAuth } from './modules/entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { LocalStrategy } from './modules/strategies/local.strategy';
 import { JwtStrategy } from './modules/strategies/jwt.strategy';
 import { RefreshJwtStrategy } from './modules/strategies/refreshToken.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { RefreshToken } from './modules/entities/refreshtoken.entity';
+import { ResetToken } from './modules/entities/resettoken.entity';
+import { Role } from './modules/entities/role.entity';
+import { Permission } from './modules/entities/permission.entity';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { EncryptService } from './modules/utils/encrypt.service';
 @Module({
   imports: [
+    ClientsModule.register([
+      {
+        name: 'USER_SERVICE',
+        transport: Transport.TCP,
+        options: {
+          port: 3002,
+        },
+      },
+    ]),
+
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -23,7 +38,7 @@ import { RefreshToken } from './modules/entities/refreshtoken.entity';
         signOptions: { expiresIn: '120s' },
       }),
     }),
-    TypeOrmModule.forFeature([User, RefreshToken]),
+    TypeOrmModule.forFeature([UserAuth, RefreshToken, ResetToken, Role, Permission]),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: join(
@@ -53,14 +68,14 @@ import { RefreshToken } from './modules/entities/refreshtoken.entity';
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
         schema: configService.get('DB_SCHEMA'),
-        entities: [join(__dirname, '**/*.entity.{js,ts}')],
-        synchronize: false, //configService.get<string>('NODE_ENV') === 'development'//
+        entities: [join(__dirname, 'apps/auth-ms/src/**/*.entity.{js,ts}')],
+        synchronize: true, //configService.get<string>('NODE_ENV') === 'development'//
         autoLoadEntities: true, // Auto-load entities
         logging: configService.get<string>('NODE_ENV') === 'development', // Enable logging in dev
       }),
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, LocalStrategy, JwtStrategy, RefreshJwtStrategy],
+  providers: [AppService, LocalStrategy, JwtStrategy, RefreshJwtStrategy, EncryptService],
 })
 export class AppModule {}

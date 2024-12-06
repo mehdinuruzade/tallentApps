@@ -1,8 +1,14 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "../../dist/apps/user-ms" 
+    "outDir": "../../dist/apps/auth-ms"
   },
-  "include": ["/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "**/*",
+    "src/modules/utils/**/*" 
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

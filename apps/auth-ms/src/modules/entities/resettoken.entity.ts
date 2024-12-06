@@ -5,7 +5,7 @@ import {
   CreateDateColumn,
   OneToOne,
 } from 'typeorm';
-import { User } from './user.entity';
+import { UserAuth } from './user.entity';
 
 @Entity('resettokens')
 export class ResetToken {
@@ -15,12 +15,12 @@ export class ResetToken {
   @Column({ nullable: false })
   token: string;
 
-  @OneToOne(() => User, (user) => user.resetTokens, { onDelete: 'CASCADE' })
-  user: User;
+  @OneToOne(() => UserAuth, (user) => user.resetTokens, { onDelete: 'CASCADE' })
+  user: UserAuth;
 
   @Column({ type: 'timestamptz' })
   expiresAt: Date;
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
-}
+} 

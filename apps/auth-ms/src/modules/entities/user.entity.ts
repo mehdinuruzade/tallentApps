@@ -13,11 +13,12 @@ import {
 import { RefreshToken } from './refreshtoken.entity';
 import { ResetToken } from './resettoken.entity';
 import { Role } from './role.entity';
+import { UUID } from 'crypto';
 
-@Entity('users')
-export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
+@Entity('users_auth')
+export class UserAuth {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ unique: true, nullable: false }) // Email not-null
   email: string;

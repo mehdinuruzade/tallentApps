@@ -6,7 +6,7 @@ import {
   ManyToMany,
   JoinTable,
 } from 'typeorm';
-import { User } from './user.entity';
+import { UserAuth } from './user.entity';
 import { Permission } from './permission.entity';
 
 @Entity('roles')
@@ -21,6 +21,6 @@ export class Role {
   @JoinTable()
   permissions: string[];
 
-  @OneToMany(() => User, (user) => user.roleDetails)
-  users: User[];
+  @OneToMany(() => UserAuth, (user) => user.roleDetails)
+  users: UserAuth[];
 }
