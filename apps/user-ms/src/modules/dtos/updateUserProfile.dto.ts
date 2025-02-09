@@ -5,7 +5,10 @@ import { IsString, IsOptional, IsUUID } from 'class-validator';
 export class UpdateUserProfileDto {
   @IsString()
   @IsOptional()
-  name?: string;  // User's first name
+  name?: string;
+  
+  @IsUUID()
+  userId: UUID; // User's first name
 
   @IsString()
   @IsOptional()

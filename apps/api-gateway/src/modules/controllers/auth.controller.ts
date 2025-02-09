@@ -40,4 +40,16 @@ export class AuthController {
   {
     return this.authService.updatePassword(token, updatePasswordDto);
   }
+
+  // Forgot Password API
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Forgot password' })  
+  @ApiResponse({ status: 200, description: 'Password reset email sent successfully.' })  
+  @ApiResponse({ status: 401, description: 'Unauthorized. Invalid token.' })  
+  async forgotPassword(@Body() body: { email: string }): Promise<any> {
+    const { email } = body;
+
+    // Auth Service'e müraciət edirik
+    return await this.authService.sendPasswordResetEmail(email);
+  }
 }

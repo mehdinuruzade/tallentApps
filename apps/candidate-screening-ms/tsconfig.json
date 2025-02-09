@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "../../dist/apps/candidate-screening-ms"
+  },
+  "include": [
+    "**/*", "src/modules/entities/.entity copy.ts"],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

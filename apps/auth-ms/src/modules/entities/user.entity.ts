@@ -44,6 +44,10 @@ export class UserAuth {
   @JoinColumn()
   resetTokens: ResetToken[];
 
-  @ManyToOne(() => Role, (role) => role.users)
-  roleDetails: Role;
+  @Column()
+  roleId: number;
+
+  @ManyToOne(() => Role)
+  @JoinColumn({ name: 'roleId' })
+  role: Role;
 }
