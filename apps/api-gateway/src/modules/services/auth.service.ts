@@ -44,5 +44,18 @@ export class AuthService {
       throw new RpcException('Error resetting password: ' + error.message);
     }
   }
+  async sendPasswordResetEmail(email: string): Promise<any> {
+    try {
+      console.log({"email from contoller : ": email})
+      // Auth microservice'e müraciət edirik
+      const result = await
+        this.authService.send({ cmd: 'forgot-password' },  email ).toPromise();
+      
+      return result;
+    } catch (error) {
+      throw new Error('Error sending password reset email');
+    }
+
   
+  }
 }

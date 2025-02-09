@@ -17,6 +17,8 @@ import { Role } from './modules/entities/role.entity';
 import { Permission } from './modules/entities/permission.entity';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { EncryptService } from './modules/utils/encrypt.service';
+import { MailService } from './app.mailService';
+import { SeederService } from './modules/utils/seeder.service';
 @Module({
   imports: [
     ClientsModule.register([
@@ -76,6 +78,6 @@ import { EncryptService } from './modules/utils/encrypt.service';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, LocalStrategy, JwtStrategy, RefreshJwtStrategy, EncryptService],
+  providers: [AppService, LocalStrategy, JwtStrategy, RefreshJwtStrategy, EncryptService, MailService,SeederService],
 })
 export class AppModule {}

@@ -27,21 +27,32 @@ export class AppService {
         return false;  // Return false if save fails
       }
     }
-  async updateUser(userProfileData: any): Promise<UserProfile> {
-    const existingUserProfile = await this.userProfile.findOne({ where: { userAuthID: userProfileData.userId } });
+  async updateUser(data: any): Promise<UserProfile> {
+    const existingUserProfile = await this.userProfile.findOne({ where: { userAuthID: data.userId } });
+
     if (!existingUserProfile) {
       throw new RpcException('User profile not found');
     }
 
-    existingUserProfile.name = userProfileData.name || existingUserProfile.name;
-    existingUserProfile.surname = userProfileData.surname || existingUserProfile.surname;
-    existingUserProfile.patronymic = userProfileData.patronymic || existingUserProfile.patronymic;
-    existingUserProfile.gender = userProfileData.gender || existingUserProfile.gender;
-    existingUserProfile.position = userProfileData.position || existingUserProfile.position;
-    existingUserProfile.positionLevel = userProfileData.positionLevel || existingUserProfile.positionLevel;
-    existingUserProfile.positionSublevel = userProfileData.positionSublevel || existingUserProfile.positionSublevel;
-    try {
+    // Log the data to check if everything is correct
+    console.log('User profile data to be updated:', data);
+    console.log('Existing user profile:', existingUserProfile);
 
+    // Update the fields with the new values from userProfileData
+    existingUserProfile.name = data.userProfileData.name || existingUserProfile.name;
+    existingUserProfile.surname = data.userProfileData.surname || existingUserProfile.surname;
+    existingUserProfile.patronymic = data.userProfileData.patronymic || existingUserProfile.patronymic;
+    existingUserProfile.gender = data.userProfileData.gender || existingUserProfile.gender;
+    existingUserProfile.position = data.userProfileData.position || existingUserProfile.position;
+    existingUserProfile.positionLevel = data.userProfileData.positionLevel || existingUserProfile.positionLevel;
+    existingUserProfile.positionSublevel = data.userProfileData.positionSublevel || existingUserProfile.positionSublevel;
+    
+
+    // Log updated fields to verify if update is happening correctly
+    console.log('Updated user profile:', existingUserProfile);
+
+    try {
+      // Save the updated profile
       await this.userProfile.save(existingUserProfile);
       return existingUserProfile;
     } catch (error) {

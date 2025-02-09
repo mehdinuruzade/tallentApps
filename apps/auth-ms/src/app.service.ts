@@ -9,15 +9,20 @@ import { RefreshToken } from './modules/entities/refreshtoken.entity';
 import { plainToInstance } from 'class-transformer';
 import { SignInResponseDto } from './modules/dtos/signin-response.dto';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
-import { catchError, firstValueFrom, throwError } from 'rxjs';
+import { catchError, firstValueFrom, from, throwError } from 'rxjs';
 import { EncryptService } from './modules/utils/encrypt.service';
-import { UUID } from 'crypto';
+import { UUID  } from 'crypto';
 import { UpdatePasswordDto } from './modules/dtos/updatePassword.dto';
+import * as bcrypt from 'bcrypt';
+import { MailService } from './app.mailService';
+import e from 'express';
+import { Role } from './modules/entities/role.entity';
 @Injectable()
 export class AppService {
   constructor(
     private readonly encryptService: EncryptService,
     private jwtService: JwtService,
+    private readonly mailService: MailService,
     @Inject('USER_SERVICE') private readonly userService: ClientProxy,
     @InjectRepository(UserAuth)
     private readonly userRepo: Repository<UserAuth>,
@@ -34,12 +39,13 @@ export class AppService {
     }
     const hashedPassword = await this.encryptService.hashPassword(password);
     const newUser = this.userRepo.create({
+      
+      roleId: 1 ,
       email: email,
       password: hashedPassword,
     });
 
 
-    console.log('salam 2')
     
     const createdUser = await this.userRepo.save(newUser);
 console.log({salam: createdUser})
@@ -72,7 +78,7 @@ console.log({salam: createdUser})
 
     // Generate tokens
     await this.createRefreshToken(user);
-    const accessToken = this.generateAccessToken(user.email,user.id);
+    const accessToken = this.generateAccessToken(user.email,user.id,user.roleId);
 
     // Construct and transform response
     return plainToInstance(
@@ -101,11 +107,10 @@ console.log({salam: createdUser})
     return this.refreshTokenRepo.save(refreshToken); // Save and return the refresh token
   }
 
-  private generateAccessToken(email: string , userId: string){
-    const payload = { username: email,userId:userId };
+  private generateAccessToken(email: string , userId: string, role: number){
+    const payload = { username: email,userId:userId ,role:role};
     return this.jwtService.sign(payload, { expiresIn: '1h' });
   }
-
   private async findUserWithTokens(email: string): Promise<UserAuth | null> {
     return this.userRepo.findOne({
       where: { email },
@@ -157,4 +162,73 @@ console.log({salam: createdUser})
       throw new RpcException('Error updating password');
     }
   }
-}
+    // İstifadəçi email ilə tapılır
+    async findUserByEmail(email: string) {
+      return await this.userRepo.findOneBy({ email });
+    }
+
+
+  
+  private async generateResetToken(userId: string): Promise<string> {
+    const payload = { sub: userId }; 
+    return this.jwtService.sign(payload, { expiresIn: '1h' }); 
+  }
+
+  private async sendPasswordResetEmail(email: string, resetToken: string): Promise<void> {
+    const resetLink = `https://your-frontend-url.com/reset-password?token=${resetToken}`;
+    await this.mailService.sendMail({
+      to: email,
+      subject: 'Password Reset Request',
+      text: `Click the following link to reset your password: ${resetLink}`,
+    });
+  }
+
+
+  async forgotPassword(email: string): Promise<any> {
+    const user = await this.findUserByEmail(email); 
+console.log({"mail from auth ms" :email})
+    if (!user) {
+      throw new RpcException('User not found');
+    }
+
+  
+    const resetToken = await this.generateResetToken(user.id);
+
+  
+    await this.sendPasswordResetEmail(user.email, resetToken);
+
+    return { message: 'Password reset email sent successfully' };
+  }
+
+ 
+  async resetPassword(token: string, newPassword: string): Promise<any> {
+    const decoded = await this.verifyResetToken(token); 
+
+    if (!decoded) {
+      throw new RpcException('Invalid or expired token');
+    }
+
+    const userId = decoded.sub;
+    const hashedPassword = await this.hashPassword(newPassword); 
+
+    
+    await this.updatePassword({userId, newPassword: hashedPassword});
+
+    return { message: 'Password reset successfully' };
+  }
+
+
+  private async verifyResetToken(token: string): Promise<any> {
+    try {
+      return this.jwtService.verify(token); 
+    } catch (error) {
+      throw new RpcException('Invalid or expired token');
+    }
+  }
+
+  private async hashPassword(password: string): Promise<string> {
+    const salt = await bcrypt.genSalt(10);
+    return bcrypt.hash(password, salt);
+  }
+
+  }

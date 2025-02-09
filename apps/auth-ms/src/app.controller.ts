@@ -15,7 +15,6 @@ export class AppController {
     return this.appService.createUser(createUserDto);
   }
 
-  @UseGuards(LocalAuthGuard)
   @MessagePattern({ cmd: 'signin' })
   async signIn(
     @Payload(new ValidationPipe({ transform: true })) user: SignInDto,
@@ -31,4 +30,9 @@ export class AppController {
   async updatePassword(@Payload() data: any) {
     return this.appService.updatePassword(data);
   }
+  @MessagePattern({ cmd: 'forgot-password' })
+  async forgotPassword(@Payload() data: any) {
+    return this.appService.forgotPassword(data);
+  }
+
 }
